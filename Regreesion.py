@@ -1,3 +1,4 @@
+#最小二乘法线性回归
 from numpy import *
 import matplotlib.pyplot as plt
 
