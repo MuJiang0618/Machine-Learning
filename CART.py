@@ -78,18 +78,20 @@ def chooseBestSplit(dataSet, ops=(0.02, 5), leafNode=leaf_cls, err_cal=err_cls):
     if len(subSetL) + len(subSetR) < tol_num:
         return None, leafNode(dataSet)
 
-
     return best_splitFeat, best_splitVal
 
-def creat_Tree(dataSet, max_depth=5):
+def creat_Tree(dataSet, max_depth=5, leafNode=leaf_cls):
     best_splitFeat, best_splitVal = chooseBestSplit(dataSet)
     if best_splitFeat == None:
         return best_splitVal
 
+    if max_depth == 0:
+        return leafNode(dataSet[:, -1])
+
     tree_dict = {}
     subSetL, subSetR = binSplit(dataSet, best_splitFeat, best_splitVal)
     tree_dict['feat'] = best_splitFeat; tree_dict['Val'] = best_splitVal
-    tree_dict['left'] = creat_Tree(subSetL) ; tree_dict['right'] = creat_Tree(subSetR)
+    tree_dict['left'] = creat_Tree(subSetL, max_depth-1, leafNode) ; tree_dict['right'] = creat_Tree(subSetR, max_depth-1, leafNode)
     return tree_dict
 
 def main():
