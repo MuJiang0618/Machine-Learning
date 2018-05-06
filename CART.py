@@ -53,13 +53,13 @@ def err_cls(sub_y):
 
     return gini
 
-def chooseBestSplit(dataSet, ops=(0.02, 5), leafNode=majority, err_cal):
+def chooseBestSplit(dataSet, ops=(0.02, 5), leafNode=leaf_cls, err_cal=err_cls):
     if sum(dataSet[:, -1]) == 0:    #如果该子数据集所有样本同分类
         return None, 0
     elif sum(dataSet[:, -1]) == len(dataSet[:, -1]):
         return None, 1
 
-    lowest_error = Gini(dataSet[:, -1]) ;best_splitFeat = -1 
+    lowest_error = err_cal(dataSet[:, -1]) ;best_splitFeat = -1 
     for feat in range(len(dataSet[0])-1):
         for val in set(dataSet[:, feat]):
             subSetL, subSetR = binSplit(dataSet, feat, val)
@@ -71,7 +71,7 @@ def chooseBestSplit(dataSet, ops=(0.02, 5), leafNode=majority, err_cal):
 
     org_err = err_cal(dataSet[:, -1])
     tol_err = ops[0] ; tol_num = ops[1]
-    if (org_err - lowest_err) < tol_err:
+    if (org_err - lowest_error) < tol_err:
         return None, leafNode(dataSet)
 
     subSetL, subSetR = binSplit(dataSet, best_splitFeat, best_splitVal)
