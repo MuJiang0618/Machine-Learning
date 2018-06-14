@@ -1,4 +1,4 @@
-#2018/05/14
+#2018/06/14
 from numpy import *
 import urllib.request
 
@@ -63,17 +63,18 @@ def err_cls(sub_y):
 
     return gini
 
-def chooseBestSplit(dataSet, prune_tol=(0.0, 0), leafNode=leaf_cls, err_cal=err_cls):
-    if sum(dataSet[:, -1]) == 0:    #如果该子数据集所有样本同分类
-        return None, 0
-    elif sum(dataSet[:, -1]) == len(dataSet[:, -1]):
-        return None, 1
-
-    lowest_error = err_cal(dataSet[:, -1]) ;best_splitFeat = -1 ; best_splitVal = 0.0
-    for feat in range(len(dataSet[0])-1):
-        for val in set(dataSet[:, feat]):
+def chooseBestSplit(dataSet, prune_tol=(0, 4), leafNode=leaf_reg, err_cal=err_reg):
+    lowest_error = err_cal(dataSet[:, -1]) ; best_splitFeat = -1 ; best_splitVal = 0.0
+    
+    for feat in range( len(dataSet[0]) - 1):
+        points = list(set(dataSet[:, feat]))
+        bi_point = []
+        for i in range(len(points) - 1):
+            bi_point.append( (points[i] + points[i+1]) / 2)
+        for val in bi_point:
             subSetL, subSetR = binSplit(dataSet, feat, val)
             err = err_cal(subSetL[:, -1]) + err_cal(subSetR[:, -1])
+            
             if err < lowest_error:
                 lowest_error = err
                 best_splitVal = val
@@ -84,7 +85,7 @@ def chooseBestSplit(dataSet, prune_tol=(0.0, 0), leafNode=leaf_cls, err_cal=err_
     if (org_err - lowest_error) < tol_err:
         return None, leafNode(dataSet)
 
-    subSetL, subSetR, a, b = binSplit(dataSet, best_splitFeat, best_splitVal)
+    subSetL, subSetR = binSplit(dataSet, best_splitFeat, best_splitVal)
     if len(subSetL) + len(subSetR) < tol_num:
         return None, leafNode(dataSet)
 
@@ -112,21 +113,19 @@ def get_residuals(trees, samples):
 
     return residuals
 
-def creat_Tree(dataSet, residuals, leafNode, err_cal, max_depth = 6):    #拟合残差
-    dataSet[:, -1] = residuals      #因为要拟合的是残差，所以每个样本的值改为残差
-
+def creat_Tree(dataSet, leafNode, err_cal, max_depth = 1):    #拟合残差
     if max_depth == 0:
         return leafNode(dataSet)
 
-    best_splitFeat, best_splitVal = chooseBestSplit(dataSet, (20,10) )
+    best_splitFeat, best_splitVal = chooseBestSplit(dataSet)
     if best_splitFeat == None:
         return best_splitVal
 
     tree_dict = {}
     subSetL, subSetR = binSplit(dataSet, best_splitFeat, best_splitVal)
-    tree_dict['feat'] = best_splitFeat; tree_dict['val'] = best_splitVal
-    tree_dict['left'] = creat_Tree(subSetL, leafNode, err_cls, max_depth-1) 
-    tree_dict['right'] = creat_Tree(subSetR, leafNode, err_cls, max_depth-1)
+    tree_dict['feat'] = best_splitFeat ; tree_dict['val'] = best_splitVal
+    tree_dict['left'] = creat_Tree(subSetL, leafNode, err_cal, max_depth-1)
+    tree_dict['right'] = creat_Tree(subSetR, leafNode, err_cal, max_depth-1)
 
     return tree_dict
 
@@ -136,20 +135,26 @@ def creat_GBDT(dataSet, n_tree):
     后面的节点就按CART的均方差划分
     '''
     tree_dict =[]
-    first_tree = creat_Tree(dataSet, dataSet[:, -1], leaf_reg, err_reg)
+
+    first_tree = creat_Tree(dataSet, leaf_reg, err_reg)
+    tree_dict.append(first_tree)
     
     for i in range(n_tree - 1):
         residuals = get_residuals(tree_dict, dataSet)
-        new_tree = creat_Tree(dataSet, residuals, leaf_reg, err_reg)
+        dataSet[:, -1] = residuals
+        print(residuals)
+        new_tree = creat_Tree(dataSet, leaf_reg, err_reg)
         tree_dict.append(new_tree)
 
     return tree_dict
 
 def test():
     dataSet = loadLocalData(r'C:\Users\Administrator\Desktop\ML dataSet\regression.txt')[:, 1:]
+    dataSet_copy = dataSet.copy()
     trees = creat_GBDT(dataSet[:180], 6)
-    error = get_residuals(trees, dataSet[20:])
+    print(trees)
+    error = get_residuals(trees, dataSet_copy[180:])
     sqare_error = (error **2).sum()
-    print('The sqare error is %d' %sqare_error)
+    print('The sqare error is %s' %sqare_error)
 
 test()
