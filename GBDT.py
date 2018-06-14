@@ -111,9 +111,9 @@ def get_residuals(trees, samples):
         scores.append(score)
     residuals = samples[:, -1] - scores
 
-    return residuals
+    return residuals   #residuals貌似在振荡
 
-def creat_Tree(dataSet, leafNode, err_cal, max_depth = 1):    #拟合残差
+def creat_Tree(dataSet, leafNode, err_cal, max_depth = 4):    #拟合残差
     if max_depth == 0:
         return leafNode(dataSet)
 
@@ -151,7 +151,7 @@ def creat_GBDT(dataSet, n_tree):
 def test():
     dataSet = loadLocalData(r'C:\Users\Administrator\Desktop\ML dataSet\regression.txt')[:, 1:]
     dataSet_copy = dataSet.copy()
-    trees = creat_GBDT(dataSet[:180], 6)
+    trees = creat_GBDT(dataSet[:180], 2)
     print(trees)
     error = get_residuals(trees, dataSet_copy[180:])
     sqare_error = (error **2).sum()
