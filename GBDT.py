@@ -1,4 +1,4 @@
-#2018/06/14
+#2018/06/15
 from numpy import *
 import urllib.request
 
@@ -102,18 +102,18 @@ def g_predict(tree, test_data):
         else:
             return g_predict(tree['right'], test_data)
 
-def get_residuals(trees, samples):
+def get_residuals(trees, org_dataSet):
     scores = []
-    for i in samples[:, :-1]:
-        score = 0.0
+    for i in org_dataSet[:, :-1]:
+        score = 0.0 
         for tree in trees:
             score += g_predict(tree, i)
         scores.append(score)
-    residuals = samples[:, -1] - scores
+    residuals = org_dataSet[:, -1] - scores
 
-    return residuals   #residuals貌似在振荡
+    return residuals
 
-def creat_Tree(dataSet, leafNode, err_cal, max_depth = 4):    #拟合残差
+def creat_Tree(dataSet, leafNode, err_cal, max_depth = 8):    #拟合残差
     if max_depth == 0:
         return leafNode(dataSet)
 
@@ -135,14 +135,14 @@ def creat_GBDT(dataSet, n_tree):
     后面的节点就按CART的均方差划分
     '''
     tree_dict =[]
-
+    org_dataSet = dataSet.copy()
     first_tree = creat_Tree(dataSet, leaf_reg, err_reg)
     tree_dict.append(first_tree)
     
     for i in range(n_tree - 1):
-        residuals = get_residuals(tree_dict, dataSet)
-        dataSet[:, -1] = residuals
-        print(residuals)
+        residuals = get_residuals(tree_dict, org_dataSet)
+        dataSet[:, -1] = residuals     #构建树的时候用residual_dataSet，
+        #因为要拟合的是残差，得到残差的时候只需要各样本的属性来计算分数，所以用原始数据集
         new_tree = creat_Tree(dataSet, leaf_reg, err_reg)
         tree_dict.append(new_tree)
 
@@ -156,5 +156,3 @@ def test():
     error = get_residuals(trees, dataSet_copy[180:])
     sqare_error = (error **2).sum()
     print('The sqare error is %s' %sqare_error)
-
-test()
