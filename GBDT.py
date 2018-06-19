@@ -130,10 +130,6 @@ def creat_Tree(dataSet, leafNode, err_cal, max_depth = 8):    #拟合残差
     return tree_dict
 
 def creat_GBDT(dataSet, n_tree):
-    '''
-    先只考虑根节点以残差划分
-    后面的节点就按CART的均方差划分
-    '''
     tree_dict =[]
     org_dataSet = dataSet.copy()
     first_tree = creat_Tree(dataSet, leaf_reg, err_reg)
@@ -141,8 +137,8 @@ def creat_GBDT(dataSet, n_tree):
     
     for i in range(n_tree - 1):
         residuals = get_residuals(tree_dict, org_dataSet)
-        dataSet[:, -1] = residuals     #构建树的时候用residual_dataSet，
-        #因为要拟合的是残差，得到残差的时候只需要各样本的属性来计算分数，所以用原始数据集
+        dataSet[:, -1] = residuals     #构建树的时候用residual_dataSet，因为要拟合的是残差，
+        #得到残差的时候只需要各样本的属性来计算分数，所以用原始数据集
         new_tree = creat_Tree(dataSet, leaf_reg, err_reg)
         tree_dict.append(new_tree)
 
