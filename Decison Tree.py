@@ -28,7 +28,7 @@ def Cal_Entropy(DataSet):
     total_entropy = 0.0
     num_data = len(DataSet)
     for item in label_dic:
-        prob = label_dic[item] / num_data
+        prob = label_dic[item] / num_data 
         total_entropy -= prob * log(prob, 2)
 
     return total_entropy
@@ -62,7 +62,7 @@ def Choose_best_feat(DataSet):
         InfoGain = basic_entropy - sub_entropy
         if InfoGain > largest_info_gain:
             largest_info_gain = InfoGain
-            best_feat = i    #
+            best_feat = i
 
     return best_feat
 
