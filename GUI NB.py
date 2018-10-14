@@ -2,7 +2,6 @@
 """
 构建含有不重复的所有训练词汇的词袋:
     计算词袋中每个词汇在正常句子/不正常句子中出现的概率
-    
 """
 from numpy import *
 from tkinter import *
